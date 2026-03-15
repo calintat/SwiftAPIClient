@@ -214,6 +214,12 @@ open class APIClient: @unchecked Sendable {
                 queryItems.append(URLQueryItem(name: key, value: value))
             }
             components.queryItems = queryItems
+            
+            // URLComponents follows RFC 3986 and leaves `+` unencoded, but many
+            // servers decode `+` as a space. Re-encode it via percentEncodedQuery.
+            if let encoded = components.percentEncodedQuery, encoded.contains("+") {
+                components.percentEncodedQuery = encoded.replacingOccurrences(of: "+", with: "%2B")
+            }
         }
 
         guard let url = components.url else { throw APIClientError.malformedURL }
